@@ -4,16 +4,15 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class MotorDistance {
     private double lastPlace;
-    private DcMotor MotorDistance;
+    private DcMotor motorDistance;
 
-
-    public MotorDistance() {
-        this.MotorDistance = null;
-        this.lastPlace = MotorDistance.getCurrentPosition();
+    public MotorDistance(DcMotor dcMotor) {
+        this.motorDistance = dcMotor;
+        this.lastPlace = motorDistance.getCurrentPosition();
     }
 
     public double getDistance () {
-        double distance = this.MotorDistance.getCurrentPosition() - this.lastPlace;
+        double distance = this.motorDistance.getCurrentPosition() - this.lastPlace;
         return distance;
     }
 }

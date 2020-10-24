@@ -37,7 +37,8 @@ public class pid {
         double P = error * kp;
         this.I += (error * delta_time) * ki;
         double D = ((error - this.last_error) / delta_time) * kd;
-        double pid = P + this.I + D + this.F;
+        double F= (1/105)*set_point;
+        double pid = P + this.I + D + F;
         if (pid >= 1){
             return 1;
         }

@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 public class testPowerPID extends OpMode {
     private DcMotor leftMotor=null;
     private DcMotor rightMotor=null;
-    private PowerPID powerPID;
-    private MotorDistance motorDistance =new MotorDistance();;
+    private pid powerPID;
+    private MotorDistance motorDistance = null;
     private RunTime runTime = new RunTime();
 
     public void init(){
@@ -21,7 +21,9 @@ public class testPowerPID extends OpMode {
         //leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        powerPID= new PowerPID(0.9,1,1,1);
+        motorDistance = new MotorDistance(rightMotor);
+
+        powerPID= new pid(0.9,1,1,1);
         powerPID.set_set_point(50);
     }
 
