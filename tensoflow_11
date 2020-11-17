@@ -1,0 +1,150 @@
+package org.firstinspires.ftc.robotcontroller.external.samples;
+
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import java.util.List;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+
+@TeleOp(name = "Concept: TensorFlow Object Detection Switchable Cameras", group = "Concept")
+public class ConceptTensorFlowObjectDetectionSwitchableCameras extends OpMode {
+    private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+    private static final String LABEL_FIRST_ELEMENT = "Quad";
+    private static final String LABEL_SECOND_ELEMENT = "Single";
+
+    private static final String VUFORIA_KEY =
+            "AdADKEb/////AAABmShVtB8tPEQNllbxEt6NPY4n0" +
+                    "SSGPn8QZ+SWc92fb8WGlwV1PgFi2E9mwk" +
+                    "aEJERTmD08ZnCLsGFrhkPKBhZdEJB1Rxk" +
+                    "Gzlh2YIAc7bQYnPAWmgg2wHiaaOmmiISi+" +
+                    "twe/vJ9mGJW4FXVa47rn1mdtP/IW4Sm9n6y" +
+                    "Tbyl73Ju/NvssowwRQSCP1Nl/+KL5Pj1Sf" +
+                    "2vZzFqEikq5uttlBOztJmnmarmOx3gXYBNg" +
+                    "kZyuFohhox2BDvszzQd9Vkga2POt2tOVDiihg/" +
+                    "/tooK5M9Arotk8mx7m/zQJU5uDbt6BuI3g0wn" +
+                    "x1fnfzamygRkLcejQVl0/MdSLt7I4w8qiu8DhJ" +
+                    "ESrCb4Xq0Gjdg8eqiOslrZ";
+
+    private VuforiaLocalizer vuforia;
+
+    private WebcamName webcam1, webcam2;
+    private SwitchableCamera switchableCamera;
+    private boolean oldLeftBumper;
+    private boolean oldRightBumper;
+
+    private TFObjectDetector tfod;
+
+    @Override
+    public void init(){
+        initVuforia();
+        initTfod();
+
+        if (tfod != null) {
+            tfod.activate();
+        }
+
+        telemetry.addData(">", "Press Play to start op mode");
+        telemetry.update();
+        waitForStart();
+    }
+    
+    public void init_loop(){
+        if (tfod != null) {
+            doCameraSwitching();
+            List<Recognition> recognitions = tfod.getRecognitions();
+            telemetry.addData("# Object Detected", recognitions.size());
+            int i = 0;
+            for (Recognition recognition : recognitions) {
+                telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                        recognition.getLeft(), recognition.getTop());
+                telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                        recognition.getRight(), recognition.getBottom());
+            }
+            telemetry.update();
+    }
+    
+    public void runOpMode() {
+        initVuforia();
+        initTfod();
+
+        if (tfod != null) {
+            tfod.activate();
+        }
+        
+        
+        if (tfod != null) {
+            doCameraSwitching();
+            List<Recognition> recognitions = tfod.getRecognitions();
+            telemetry.addData("# Object Detected", recognitions.size());
+            int i = 0;
+            for (Recognition recognition : recognitions) {
+                telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                        recognition.getLeft(), recognition.getTop());
+                telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                        recognition.getRight(), recognition.getBottom());
+            }
+            telemetry.update();
+
+    public start(){
+            
+    }
+    
+    public loop(){
+    
+    }
+
+    private void initVuforia() {
+
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+
+        webcam1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        webcam2 = hardwareMap.get(WebcamName.class, "Webcam 2");
+        parameters.cameraName = ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(webcam1, webcam2);
+
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        switchableCamera = (SwitchableCamera) vuforia.getCamera();
+        switchableCamera.setActiveCamera(webcam1);
+
+    }
+
+
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+            "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfodParameters.minResultConfidence = 0.8f;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+    }
+
+    private void doCameraSwitching() {
+        boolean newLeftBumper = gamepad1.left_bumper;
+        boolean newRightBumper = gamepad1.right_bumper;
+        if (newLeftBumper && !oldLeftBumper) {
+            switchableCamera.setActiveCamera(webcam1);
+        } else if (newRightBumper && !oldRightBumper) {
+            switchableCamera.setActiveCamera(webcam2);
+        }
+        oldLeftBumper = newLeftBumper;
+        oldRightBumper = newRightBumper;
+
+        if (switchableCamera.getActiveCamera().equals(webcam1)) {
+            telemetry.addData("activeCamera", "Webcam 1");
+            telemetry.addData("Press RightBumper", "to switch to Webcam 2");
+        } else {
+            telemetry.addData("activeCamera", "Webcam 2");
+            telemetry.addData("Press LeftBumper", "to switch to Webcam 1");
+        }
+    }
+}
